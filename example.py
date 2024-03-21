@@ -9,7 +9,7 @@ from genta import GentaAPI
 from genta_langchain import GentaEmbeddings, GentaLLM
 
 # Initialize GentaEmbeddings and GentaLLM
-genta_api = GentaAPI("dc521b81-a7e2-4c46-815b-21cb6cb17596")
+genta_api = GentaAPI("GENTA_API_TOKEN")
 
 genta_llm = GentaLLM(api=genta_api, model_name="DukunLM-7B")
 genta_embeddings = GentaEmbeddings(api=genta_api, model_name="GentaEmbedding")
