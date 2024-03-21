@@ -10,7 +10,7 @@ The GentaLangchain is an open-source GitHub repository that seamlessly integrate
 2. Comprehensive Documentation: The repository includes detailed documentation and examples to guide developers through the process of setting up and utilizing the Genta-Langchain Connector effectively.
 
 3. Efficient API Calls: The connector optimizes API calls to Genta's services, ensuring fast and reliable responses for enhanced performance.
-Extensible Architecture: The modular design of the Genta-Langchain Connector allows developers to easily extend and customize its functionality to suit their specific requirements.
+Extensible Architecture: The modular design of the GentaLangchain allows developers to easily extend and customize its functionality to suit their specific requirements.
 
 4. Community-Driven: As an open-source project, GentaLangchain encourages collaboration and contributions from the developer community, fostering continuous improvement and innovation.
 
