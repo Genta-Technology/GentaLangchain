@@ -21,14 +21,11 @@ embeddings_text = genta_embeddings.embed_query(input_text)
 input_texts = ["Genta Technology untuk kemajuan bersama", "Genta API mudah digunakan"]
 embeddings_documents = genta_embeddings.embed_documents(input_texts)
 
-# Use GentaLLM in Langchain
-prompt = PromptTemplate(
-    input_variables=["product"],
-    template="Apa rekomendasi anda mengenai produk {product}?",
-)
-chain = LLMChain(llm=genta_llm, prompt=prompt)
-result = chain.invoke("permen karet")
+# Use GentaLLM in Langchain (Text/prompt completion)
+result = genta_llm.invoke("Apa merek permen karet yang bagus?")
 
 print(embeddings_text)
 print(embeddings_documents)
 print(result)
+
+# Use GentaChatLLM in Langchain (Chat completion)

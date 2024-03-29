@@ -13,6 +13,8 @@ from typing import Any, List, Dict, Mapping, Optional
 from langchain.embeddings.base import Embeddings
 from langchain.llms.base import LLM
 from requests.exceptions import JSONDecodeError
+from langchain_core.callbacks.manager import CallbackManagerForLLMRun
+from langchain.schema import AIMessage, HumanMessage, SystemMessage
 from pydantic import Field
 from genta import GentaAPI
 
@@ -75,63 +77,71 @@ class GentaEmbeddings(Embeddings):
             text=text, model_name="GentaEmbedding")
         return embedding[0]
 
-
 class GentaLLM(LLM):
     """
-    GentaLLM class for utilizing Genta API LLMs in Langchain.
+    GentaLLM is a class that represents a Genta Language Model.
 
-    This class inherits from the LLM base class and provides methods for
-    generating text using Genta API LLMs.
+    Args:
+        api_token (str): The API token for accessing the GentaAPI.
+        model_name (str, optional): The name of the Genta model to use. Defaults to "Llama2-7B".
+        **kwargs: Additional keyword arguments.
 
     Attributes:
-        api (GentaAPI): GentaAPI instance for making API calls.
-        model_name (str): Name of the LLM to use.    
+        model_name (str): The name of the Genta model.
+        api (GentaAPI): An instance of the GentaAPI class.
+        _lc_kwargs (dict): Additional keyword arguments for the GentaAPI.TextCompletion method.
     """
-    api: GentaAPI = Field(..., description="GentaAPI instance")
-    model_name: str = Field(default="Llama2-7B",
-                            description="Name of the model to use")
 
-    def _call(
-        self,
-        prompt: str,
-        max_new_tokens: Optional[int] = 1024,
-        stop: Optional[List[str]] = None,
-        repetition_penalty: Optional[float] = 1.03,
-        temperature: Optional[float] = 0.7,
-    ) -> str:
+    model_name: str = Field(None, alias='model_name')
+    api: GentaAPI
+
+    def __init__(self, api_token:str, model_name:str = "Llama2-7B", **kwargs):
+        super().__init__()
+        self.model_name = model_name
+        self.api = GentaAPI(token=api_token)
+        self._lc_kwargs = kwargs
+
+    def _call(self, prompt: str,
+              stop: Optional[List[str]] = None,
+              run_manager: Optional[CallbackManagerForLLMRun] = None,
+              **kwargs) -> str:
         """
-        Generate text using the specified Genta API LLM.
+        Calls the GentaAPI.TextCompletion method to generate text based on the given prompt.
 
         Args:
-            prompt ([str]): Prompt asked to the Genta API
-            max_new_tokens (Optional[int]): Maximum number of new tokens to generate. 
-                Default is 1024.
-            stop (Optional[List[str]]): Optional list of stop sequences.
-            repetition_penalty (Optional[float]): Penalty for repeated tokens. 
-                Default is 1.03.
-            temperature (Optional[float]): Sampling temperature. 
-                Default is 0.7.
-            top_p (Optional[float]): Cumulative probability threshold for top-p sampling. 
-                Default is 0.95.
+            prompt (str): The input prompt for text generation.
+            stop (List[str], optional): A list of stop sequences to stop text generation. Defaults to None.
+            run_manager (CallbackManagerForLLMRun, optional): A callback manager for monitoring the text generation process. Defaults to None.
+            **kwargs: Additional keyword arguments.
+
         Returns:
-            str: Generated text.
+            str: The generated text.
+
         """
-
-        response = self.api.ChatCompletion(
-            chat_history=[{'role': 'user', 'content':prompt}],
+        response, _ = self.api.TextCompletion(
+            text=prompt,
             model_name=self.model_name,
-            max_new_tokens = max_new_tokens,
             stop=stop,
-            repetition_penalty=repetition_penalty,
-            temperature=temperature
+            **self._lc_kwargs
         )
-        generated_text = response[0][0][0]['generated_text']
-        return generated_text.strip()
-
+        return response[0][0][0]['generated_text']
+    
     @property
     def _identifying_params(self) -> Mapping[str, Any]:
+        """
+        Returns the identifying parameters of the GentaLLM instance.
+
+        Returns:
+            Mapping[str, Any]: A dictionary of identifying parameters.
+        """
         return {"model_name": self.model_name}
 
     @property
     def _llm_type(self) -> str:
+        """
+        Returns the type of the language model.
+
+        Returns:
+            str: The type of the language model.
+        """
         return "Genta"
