@@ -80,26 +80,33 @@ class GentaEmbeddings(Embeddings):
 class GentaLLM(LLM):
     """
     GentaLLM is a class that represents a Genta Language Model.
-
     Args:
         api_token (str): The API token for accessing the GentaAPI.
         model_name (str, optional): The name of the Genta model to use. Defaults to "Llama2-7B".
         **kwargs: Additional keyword arguments.
-
     Attributes:
         model_name (str): The name of the Genta model.
         api (GentaAPI): An instance of the GentaAPI class.
         _lc_kwargs (dict): Additional keyword arguments for the GentaAPI.TextCompletion method.
     """
+    model_name: str = Field(default="Llama2-7B", alias='model_name')
+    api_token: str
 
-    model_name: str = Field(None, alias='model_name')
-    api: GentaAPI
-
-    def __init__(self, api_token:str, model_name:str = "Llama2-7B", **kwargs):
-        super().__init__()
+    def __init__(self, api_token: str, model_name: str = "Llama2-7B", **kwargs):
+        super().__init__(api_token=api_token, **kwargs)
         self.model_name = model_name
-        self.api = GentaAPI(token=api_token)
+        self.api_token = api_token
         self._lc_kwargs = kwargs
+
+    @property
+    def api(self) -> GentaAPI:
+        """
+        Returns an instance of the GentaAPI class with the provided API token.
+
+        :return: An instance of the GentaAPI class.
+        :rtype: GentaAPI
+        """
+        return GentaAPI(token=self.api_token)
 
     def _call(self, prompt: str,
               stop: Optional[List[str]] = None,
@@ -107,16 +114,13 @@ class GentaLLM(LLM):
               **kwargs) -> str:
         """
         Calls the GentaAPI.TextCompletion method to generate text based on the given prompt.
-
         Args:
             prompt (str): The input prompt for text generation.
             stop (List[str], optional): A list of stop sequences to stop text generation. Defaults to None.
             run_manager (CallbackManagerForLLMRun, optional): A callback manager for monitoring the text generation process. Defaults to None.
             **kwargs: Additional keyword arguments.
-
         Returns:
             str: The generated text.
-
         """
         response, _ = self.api.TextCompletion(
             text=prompt,
@@ -124,13 +128,12 @@ class GentaLLM(LLM):
             stop=stop,
             **self._lc_kwargs
         )
-        return response[0][0][0]['generated_text']
-    
+        return response[0]['generated_text']
+
     @property
     def _identifying_params(self) -> Mapping[str, Any]:
         """
         Returns the identifying parameters of the GentaLLM instance.
-
         Returns:
             Mapping[str, Any]: A dictionary of identifying parameters.
         """
@@ -140,7 +143,6 @@ class GentaLLM(LLM):
     def _llm_type(self) -> str:
         """
         Returns the type of the language model.
-
         Returns:
             str: The type of the language model.
         """
