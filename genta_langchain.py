@@ -170,12 +170,16 @@ class GentaChatLLM(BaseChatModel):
 
     model_name: str = Field(default="Llama2-7B", alias='model_name')
     api_token: str
+    temperature: float = Field(default=1.1, alias='model_name')
+    max_new_token: int = Field(default=256, alias='model_name')
 
-    def __init__(self, api_token: str, model_name: str = "Llama2-7B", **kwargs):
+    def __init__(self, api_token: str, model_name: str = "Llama2-7B", temperature: Optional[float] = 1.1, max_new_token: Optional[int] = 256, **kwargs):
         super().__init__(api_token=api_token, **kwargs)
         self.model_name = model_name
         self.api_token = api_token
         self._lc_kwargs = kwargs
+        self.temperature = temperature
+        self.max_new_token = max_new_token
 
     def _generate(
         self,
@@ -197,10 +201,13 @@ class GentaChatLLM(BaseChatModel):
             ChatResult: The generated response.
 
         """
+
         response, _ = self.api.ChatCompletion(
             chat_history=self.format_messages(messages),
             model_name=self.model_name,
             stop=stop,
+            max_new_tokens=self.max_new_token,
+            temperature=self.temperature,
             **self._lc_kwargs
         )
 
